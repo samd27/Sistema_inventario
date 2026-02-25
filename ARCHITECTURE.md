@@ -9,24 +9,24 @@ Este sistema implementa una **Arquitectura en Capas (Layered Architecture)** con
 La capa de dominio (core) **define interfaces** que la capa de datos **implementa**:
 
 ```
-┌─────────────────────────────────┐
-│  core/interfaces/               │  ← Define el contrato
-│  IProductoRepository (Puerto)   │
-└─────────────────┬───────────────┘
+┌──────────────────────────────────────────┐
+│  backend/app/core/interfaces/            │  ← Define el contrato
+│  IProductoRepository (Puerto)            │
+└─────────────────┬────────────────────────┘
                   ↑
                   │ implementa
                   │
-┌─────────────────────────────────┐
-│  data/repositories/             │  ← Implementa el contrato
-│  ProductoRepository (Adaptador) │
-└─────────────────────────────────┘
+┌──────────────────────────────────────────┐
+│  backend/app/data/repositories/          │  ← Implementa el contrato
+│  ProductoRepository (Adaptador)          │
+└──────────────────────────────────────────┘
 ```
 
 ### 2. Separación de Responsabilidades
 
 Cada capa tiene responsabilities claramente definidas:
 
-#### **Capa de Dominio (core/)** - NO DEPENDE DE NADA
+#### **Capa de Dominio (backend/app/core/)** - NO DEPENDE DE NADA
 - **Entidades**: Objetos de negocio puros (Producto, Categoria, Proveedor)
 - **Interfaces**: Contratos que deben cumplir los repositorios
 - **Casos de Uso**: Orquestación de la lógica de negocio
@@ -39,7 +39,7 @@ class Producto:
         return self.cantidad_stock <= self.stock_minimo
 ```
 
-#### **Capa de Datos (data/)** - Adaptadores
+#### **Capa de Datos (backend/app/data/)** - Adaptadores
 - **Modelos**: Mapeo ORM con SQLAlchemy
 - **Repositorios**: Implementan las interfaces del dominio
 - **Database**: Configuración de conexión
@@ -57,7 +57,7 @@ class ProductoModel(db.Model):
         return ProductoModel(...)
 ```
 
-#### **Capa de Presentación (web/)** - Controllers
+#### **Capa de Presentación (backend/app/web/)** - API REST + Frontend React
 - **Controladores**: Manejan HTTP requests/responses
 - **Templates**: Vistas HTML
 - **Routes**: Endpoints de la API
@@ -76,7 +76,7 @@ Datos (data)
 
 ### 4. Inyección de Dependencias
 
-En `app.py` se ensamblan todas las capas:
+En `backend/run.py` se ensamblan todas las capas:
 
 ```python
 # 1. Crear repositorios (capa de datos)
@@ -122,7 +122,7 @@ producto_uc = ProductoUseCases(MockProductoRepository())
 POST /productos/crear
 ```
 
-### 2. **Controlador** (web/controllers/producto_controller.py)
+### 2. **API** (backend/app/web/api/producto_api.py)
 ```python
 @producto_bp.route('/crear', methods=['POST'])
 def crear():
@@ -132,7 +132,7 @@ def crear():
     # Retorna respuesta HTTP
 ```
 
-### 3. **Caso de Uso** (core/use_cases/producto_use_cases.py)
+### 3. **Caso de Uso** (backend/app/core/use_cases/producto_use_cases.py)
 ```python
 def crear_producto(self, producto: Producto):
     # Valida reglas de negocio
@@ -143,7 +143,7 @@ def crear_producto(self, producto: Producto):
     return True, None, producto_creado
 ```
 
-### 4. **Entidad** (core/entities/producto.py)
+### 4. **Entidad** (backend/app/core/entities/producto.py)
 ```python
 def validar(self) -> tuple[bool, str]:
     # Lógica de negocio PURA
@@ -152,7 +152,7 @@ def validar(self) -> tuple[bool, str]:
     return True, None
 ```
 
-### 5. **Repositorio** (data/repositories/producto_repository.py)
+### 5. **Repositorio** (backend/app/data/repositories/producto_repository.py)
 ```python
 def crear(self, producto: Producto) -> Producto:
     # Traduce a modelo de BD

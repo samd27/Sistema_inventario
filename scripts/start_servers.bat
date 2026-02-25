@@ -4,11 +4,16 @@ echo Sistema de Inventario - React + Flask
 echo ========================================
 echo.
 
+REM Ir al directorio raiz del proyecto (un nivel arriba de scripts/)
+cd /d "%~dp0.."
+
 REM Activar entorno virtual
 call venv\Scripts\activate.bat
 
 echo [1/2] Iniciando servidor Flask (Puerto 8080)...
-start "Flask Backend" cmd /k "venv\Scripts\python.exe run.py"
+cd backend
+start "Flask Backend" cmd /k "..\venv\Scripts\python.exe run.py"
+cd ..
 timeout /t 3 /nobreak >nul
 
 echo [2/2] Iniciando servidor React (Puerto 5173)...

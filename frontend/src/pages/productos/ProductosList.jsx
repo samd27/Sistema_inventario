@@ -1,20 +1,36 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { motionTokens } from '../../utils/motionTokens';
-import { productosAPI } from '../../services/api';
+import { productosAPI, categoriasAPI, proveedoresAPI } from '../../services/api';
 import Card from '../../components/Card';
 import Button from '../../components/Button';
 import './ProductosList.css';
 
+const emptyForm = {
+  nombre: '',
+  descripcion: '',
+  precio: '',
+  stock: '',
+  stock_minimo: '',
+  categoria_id: '',
+  proveedor_id: ''
+};
+
 const ProductosList = () => {
   const [productos, setProductos] = useState([]);
+  const [categorias, setCategorias] = useState([]);
+  const [proveedores, setProveedores] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const navigate = useNavigate();
+  const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [detailId, setDetailId] = useState(null);
+  const [formData, setFormData] = useState(emptyForm);
 
   useEffect(() => {
     fetchProductos();
+    fetchCategorias();
+    fetchProveedores();
   }, []);
 
   const fetchProductos = async () => {
@@ -32,15 +48,86 @@ const ProductosList = () => {
     }
   };
 
+  const fetchCategorias = async () => {
+    try {
+      const response = await categoriasAPI.getAll();
+      if (response.data.success) setCategorias(response.data.data);
+    } catch (err) {
+      console.error('Error al cargar categorías', err);
+    }
+  };
+
+  const fetchProveedores = async () => {
+    try {
+      const response = await proveedoresAPI.getAll();
+      if (response.data.success) setProveedores(response.data.data);
+    } catch (err) {
+      console.error('Error al cargar proveedores', err);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const payload = {
+        ...formData,
+        precio: parseFloat(formData.precio),
+        stock: parseInt(formData.stock),
+        stock_minimo: parseInt(formData.stock_minimo),
+        categoria_id: parseInt(formData.categoria_id),
+        proveedor_id: parseInt(formData.proveedor_id)
+      };
+      if (editingId) {
+        await productosAPI.update(editingId, payload);
+      } else {
+        await productosAPI.create(payload);
+      }
+      handleCancel();
+      fetchProductos();
+    } catch (err) {
+      alert('Error al guardar producto');
+      console.error(err);
+    }
+  };
+
+  const handleEdit = (producto) => {
+    setEditingId(producto.id);
+    setDetailId(null);
+    setFormData({
+      nombre: producto.nombre,
+      descripcion: producto.descripcion || '',
+      precio: producto.precio,
+      stock: producto.stock,
+      stock_minimo: producto.stock_minimo,
+      categoria_id: producto.categoria_id,
+      proveedor_id: producto.proveedor_id
+    });
+    setShowForm(true);
+  };
+
   const handleDelete = async (id) => {
     if (window.confirm('¿Estás seguro de eliminar este producto?')) {
       try {
         await productosAPI.delete(id);
+        if (detailId === id) setDetailId(null);
         fetchProductos();
       } catch (err) {
         alert('Error al eliminar producto');
       }
     }
+  };
+
+  const handleCancel = () => {
+    setShowForm(false);
+    setEditingId(null);
+    setFormData(emptyForm);
+  };
+
+  const handleNewClick = () => {
+    setDetailId(null);
+    setEditingId(null);
+    setFormData(emptyForm);
+    setShowForm(!showForm);
   };
 
   const containerVariants = {
@@ -79,6 +166,8 @@ const ProductosList = () => {
     return <div className="error-message">{error}</div>;
   }
 
+  const detailProducto = detailId ? productos.find(p => p.id === detailId) : null;
+
   return (
     <div className="productos-page">
       <div className="page-header">
@@ -92,10 +181,141 @@ const ProductosList = () => {
           </svg>
           Productos
         </motion.h1>
-        <Button onClick={() => navigate('/productos/crear')}>
-          + Nuevo Producto
+        <Button onClick={handleNewClick}>
+          {showForm && !editingId ? 'Cancelar' : '+ Nuevo Producto'}
         </Button>
       </div>
+
+      {/* Formulario de crear / editar */}
+      {showForm && (
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <Card className="form-card">
+            <h2>{editingId ? 'Editar Producto' : 'Nuevo Producto'}</h2>
+            <form onSubmit={handleSubmit}>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Nombre *</label>
+                  <input
+                    type="text"
+                    value={formData.nombre}
+                    onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Precio *</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={formData.precio}
+                    onChange={(e) => setFormData({ ...formData, precio: e.target.value })}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>Descripción</label>
+                <textarea
+                  value={formData.descripcion}
+                  onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })}
+                  rows="2"
+                />
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Stock *</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={formData.stock}
+                    onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Stock Mínimo *</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={formData.stock_minimo}
+                    onChange={(e) => setFormData({ ...formData, stock_minimo: e.target.value })}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Categoría *</label>
+                  <select
+                    value={formData.categoria_id}
+                    onChange={(e) => setFormData({ ...formData, categoria_id: e.target.value })}
+                    required
+                  >
+                    <option value="">-- Seleccionar --</option>
+                    {categorias.map(c => (
+                      <option key={c.id} value={c.id}>{c.nombre}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Proveedor *</label>
+                  <select
+                    value={formData.proveedor_id}
+                    onChange={(e) => setFormData({ ...formData, proveedor_id: e.target.value })}
+                    required
+                  >
+                    <option value="">-- Seleccionar --</option>
+                    {proveedores.map(p => (
+                      <option key={p.id} value={p.id}>{p.nombre}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="form-actions">
+                <Button type="submit" variant="success">
+                  {editingId ? 'Actualizar' : 'Crear'}
+                </Button>
+                <Button type="button" variant="outline" onClick={handleCancel}>
+                  Cancelar
+                </Button>
+              </div>
+            </form>
+          </Card>
+        </motion.div>
+      )}
+
+      {/* Detalle de producto */}
+      {detailProducto && !showForm && (
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <Card className="form-card">
+            <div className="detail-header">
+              <h2>{detailProducto.nombre}</h2>
+              <Button variant="outline" size="small" onClick={() => setDetailId(null)}>Cerrar</Button>
+            </div>
+            <div className="detail-grid">
+              <p><strong>Descripción:</strong> {detailProducto.descripcion || 'Sin descripción'}</p>
+              <p><strong>Precio:</strong> ${parseFloat(detailProducto.precio).toFixed(2)}</p>
+              <p><strong>Stock:</strong> {detailProducto.stock} (mín: {detailProducto.stock_minimo})</p>
+              <p><strong>Categoría:</strong> {detailProducto.categoria_nombre}</p>
+              <p><strong>Proveedor:</strong> {detailProducto.proveedor_nombre}</p>
+              {detailProducto.necesita_reabastecimiento && (
+                <p className="stock-bajo"><strong>⚠ Necesita reabastecimiento</strong></p>
+              )}
+            </div>
+          </Card>
+        </motion.div>
+      )}
 
       <motion.div
         className="productos-grid"
@@ -124,7 +344,7 @@ const ProductosList = () => {
                   <p><strong>Proveedor:</strong> {producto.proveedor_nombre}</p>
                   <p><strong>Precio:</strong> ${parseFloat(producto.precio).toFixed(2)}</p>
                   <p>
-                    <strong>Stock:</strong> 
+                    <strong>Stock:</strong>{' '}
                     <span className={producto.stock < producto.stock_minimo ? 'stock-bajo' : 'stock-ok'}>
                       {producto.stock} / {producto.stock_minimo}
                     </span>
@@ -139,14 +359,14 @@ const ProductosList = () => {
                   <Button 
                     variant="secondary" 
                     size="small"
-                    onClick={() => navigate(`/productos/${producto.id}`)}
+                    onClick={() => { setDetailId(producto.id); setShowForm(false); }}
                   >
                     Ver Detalles
                   </Button>
                   <Button 
                     variant="outline" 
                     size="small"
-                    onClick={() => navigate(`/productos/editar/${producto.id}`)}
+                    onClick={() => handleEdit(producto)}
                   >
                     Editar
                   </Button>
@@ -164,7 +384,7 @@ const ProductosList = () => {
         ))}
       </motion.div>
 
-      {productos.length === 0 && (
+      {productos.length === 0 && !showForm && (
         <motion.div
           className="empty-state"
           initial={{ opacity: 0, scale: 0.9 }}
@@ -172,7 +392,7 @@ const ProductosList = () => {
         >
           <h2>No hay productos registrados</h2>
           <p>Comienza agregando tu primer producto</p>
-          <Button onClick={() => navigate('/productos/crear')}>
+          <Button onClick={handleNewClick}>
             + Crear Producto
           </Button>
         </motion.div>

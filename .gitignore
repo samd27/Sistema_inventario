@@ -30,6 +30,7 @@ instance/
 # Environment variables
 .env
 .env.local
+backend/.env
 
 # IDE
 .vscode/
@@ -59,3 +60,7 @@ htmlcov/
 # Temporary files
 *.tmp
 temp/
+
+# Node
+frontend/node_modules/
+frontend/dist/
