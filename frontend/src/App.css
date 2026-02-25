@@ -1,0 +1,27 @@
+.app {
+  min-height: 100vh;
+  background: linear-gradient(180deg, var(--bg-1), var(--bg-2));
+  -webkit-font-smoothing: antialiased;
+}
+
+.main-content {
+  min-height: calc(100vh - 80px);
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* subtle backdrop to content */
+.surface {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--soft-shadow);
+  padding: 1rem;
+}
+

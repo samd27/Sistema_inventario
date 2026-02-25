@@ -1,0 +1,98 @@
+.navbar {
+  position: sticky;
+  top: 12px;
+  z-index: 1000;
+  margin: 0 1rem;
+  backdrop-filter: blur(18px) saturate(150%);
+  background: rgba(255,255,255,0.72);
+  border: 1px solid rgba(255,255,255,0.5);
+  border-radius: 14px;
+  box-shadow: 0 8px 20px rgba(2,6,23,0.06);
+}
+
+.navbar-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0.7rem 1.25rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.navbar-brand h1 {
+  color: var(--text);
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.navbar-menu {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  gap: 0.5rem;
+}
+
+.navbar-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.9rem;
+  color: var(--muted);
+  text-decoration: none;
+  border-radius: 10px;
+  font-weight: 600;
+  transition: transform 180ms ease, background 180ms ease, color 180ms ease;
+  background: transparent;
+}
+
+
+.navbar-link:hover {
+  background: rgba(255,255,255,0.03);
+  color: var(--text);
+  transform: translateY(-2px);
+}
+
+.navbar-link.active {
+  background: rgba(255,255,255,0.035);
+  color: var(--text);
+  box-shadow: 0 8px 26px rgba(2,6,23,0.28);
+}
+
+.navbar-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.navbar-icon .icon {
+  width: 1.125rem;
+  height: 1.125rem;
+  color: var(--muted);
+}
+  align-items: center;
+  justify-content: center;
+}
+
+.navbar-icon .icon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+@media (max-width: 768px) {
+  .navbar-container {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .navbar-menu {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  .navbar-link {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+  }
+}

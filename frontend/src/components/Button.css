@@ -1,0 +1,68 @@
+.btn {
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 180ms ease, box-shadow 180ms ease;
+  font-family: var(--font-sans);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1rem;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Variants - flatter, iOS-like */
+.btn-primary {
+  background: linear-gradient(180deg, var(--primary), color-mix(in srgb, var(--primary) 80%, white));
+  color: white;
+  box-shadow: 0 8px 20px rgba(10,132,255,0.12);
+}
+
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 30px rgba(10,132,255,0.14);
+}
+
+.btn-success {
+  background: #16a34a;
+  color: white;
+}
+
+.btn-danger {
+  background: #ef4444;
+  color: white;
+}
+
+.btn-secondary {
+  background: transparent;
+  border: 1px solid rgba(15,23,36,0.06);
+  color: var(--text);
+}
+
+.btn-outline {
+  background: transparent;
+  color: var(--primary);
+  border: 1px solid rgba(10,132,255,0.12);
+}
+
+/* Sizes */
+.btn-small {
+  padding: 0.45rem 0.85rem;
+  font-size: 0.875rem;
+}
+
+.btn-medium {
+  padding: 0.65rem 1rem;
+  font-size: 1rem;
+}
+
+.btn-large {
+  padding: 0.95rem 1.6rem;
+  font-size: 1.05rem;
+}
