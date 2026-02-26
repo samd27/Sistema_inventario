@@ -34,8 +34,11 @@ from app.web.api.proveedor_api import create_proveedor_api
 from app.web.api.producto_api import create_producto_api
 
 
-def create_app(config_name='default'):
+def create_app(config_name=None):
     """Factory para crear la aplicación Flask"""
+    if config_name is None:
+        config_name = os.environ.get('FLASK_ENV', 'development')
+    
     app = Flask(__name__)
     app.config.from_object(config[config_name])
     
@@ -81,6 +84,9 @@ def create_app(config_name='default'):
     
     return app
 
+
+# Crear instancia de app para Gunicorn
+app = create_app()
 
 if __name__ == '__main__':
     app = create_app('development')
