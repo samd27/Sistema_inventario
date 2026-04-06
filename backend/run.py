@@ -36,14 +36,27 @@ from app.web.api.producto_api import create_producto_api
 
 def create_app(config_name=None):
     """Factory para crear la aplicación Flask"""
+    # Detectar entorno automáticamente
     if config_name is None:
         config_name = os.environ.get('FLASK_ENV', 'development')
+        if config_name not in ['development', 'production']:
+            config_name = 'development'
     
     app = Flask(__name__)
     app.config.from_object(config[config_name])
     
     # Habilitar CORS para permitir peticiones desde React
-    CORS(app)
+    # En desarrollo: localhost, En producción: Railway
+    allowed_origins = [
+        "http://localhost:5173",  # Desarrollo local
+        "http://127.0.0.1:5173",
+        os.environ.get("FRONTEND_URL", "")  # URL del frontend en Railway
+    ]
+    # Permitir cualquier subdominio de Railway en producción
+    if config_name == 'production':
+        allowed_origins.append("https://*.railway.app")
+    
+    CORS(app, origins=[origin for origin in allowed_origins if origin], supports_credentials=True)
     
     # Inicializar base de datos
     db.init_app(app)
@@ -85,10 +98,8 @@ def create_app(config_name=None):
     return app
 
 
-# Crear instancia de app para Gunicorn
-app = create_app()
-
 if __name__ == '__main__':
+    # Solo para desarrollo local
     app = create_app('development')
     print("\n" + "="*50)
     print("🌐 Servidor Flask")
@@ -97,3 +108,6 @@ if __name__ == '__main__':
     print(f"🔧 Modo: Desarrollo")
     print(f"💡 Presiona CTRL+C para detener\n")
     app.run(debug=True, host='127.0.0.1', port=8080)
+else:
+    # Para producción (Railway con gunicorn)
+    app = create_app()

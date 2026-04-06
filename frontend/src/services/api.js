@@ -1,10 +1,10 @@
 import axios from 'axios';
 
-// Usar variable de entorno o default local
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8080/api';
+// Usar variable de entorno o fallback a localhost
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8080';
 
 const api = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: `${API_BASE_URL}/api`,
   headers: {
     'Content-Type': 'application/json',
   },
