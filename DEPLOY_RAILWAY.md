@@ -12,19 +12,25 @@ Esta guía te llevará paso a paso para desplegar tu Sistema de Inventario en Ra
 
 ## 🎯 Arquitectura de Despliegue
 
-Railway desplegará 2 servicios:
+Railway desplegará 4 servicios:
 1. **Backend** (Flask API) → Servicio Python
-2. **Frontend** (React + Vite) → Servicio Node.js
+2. **Alertas Service** (Flask API) → Servicio Python
+3. **Reportes Service** (Flask API) → Servicio Python
+4. **Frontend** (React + Vite) → Servicio Node.js
 
 ```
 ┌─────────────────────────────────────────────┐
 │           Railway Project                    │
 │                                              │
-│  ┌──────────────┐      ┌──────────────┐    │
-│  │   Backend    │      │   Frontend   │    │
-│  │   (Flask)    │◄─────│   (React)    │    │
-│  │   Puerto: *  │      │   Puerto: *  │    │
-│  └──────┬───────┘      └──────────────┘    │
+│  ┌──────────────┐  ┌──────────────┐        │
+│  │   Backend    │  │   Alertas    │        │
+│  │   (Flask)    │  │   (Flask)    │        │
+│  └──────┬───────┘  └──────┬───────┘        │
+│         │                 │                │
+│  ┌──────┴───────┐  ┌──────┴───────┐        │
+│  │  Reportes    │  │  Frontend    │        │
+│  │   (Flask)    │  │   (React)    │        │
+│  └──────────────┘  └──────────────┘        │
 │         │                                    │
 └─────────┼────────────────────────────────────┘
           │
@@ -47,6 +53,14 @@ Los siguientes archivos ya fueron creados automáticamente:
 - ✅ `backend/runtime.txt` - Versión de Python
 - ✅ `backend/requirements.txt` - Incluye gunicorn
 - ✅ `backend/.env.example` - Ejemplo de variables de entorno
+
+**Microservicios:**
+- ✅ `backend/alertas_service/Procfile`
+- ✅ `backend/alertas_service/railway.json`
+- ✅ `backend/alertas_service/.env.example`
+- ✅ `backend/reportes_service/Procfile`
+- ✅ `backend/reportes_service/railway.json`
+- ✅ `backend/reportes_service/.env.example`
 
 **Frontend:**
 - ✅ `frontend/.env.example` - Ejemplo de variables de entorno
@@ -104,6 +118,9 @@ git push -u origin main
 SECRET_KEY=tu-clave-secreta-super-segura-para-produccion-cambiala
 DATABASE_URL=mysql+pymysql://3rfSSP22cK5pJkQ.root:e1lCHXUyPjbUQdZA@gateway01.us-east-1.prod.aws.tidbcloud.com:4000/tienda_inventario
 FLASK_ENV=production
+ALERTAS_SERVICE_URL=https://tu-alertas.up.railway.app
+REPORTES_SERVICE_URL=https://tu-reportes.up.railway.app
+MICROSERVICES_TIMEOUT_SECONDS=5
 ```
 
 **💡 TIP:** Genera una SECRET_KEY segura:
@@ -146,6 +163,8 @@ python -c "import secrets; print(secrets.token_hex(32))"
 
 ```bash
 VITE_API_URL=https://tu-backend.up.railway.app
+VITE_ALERTAS_API_URL=https://tu-alertas.up.railway.app
+VITE_REPORTES_API_URL=https://tu-reportes.up.railway.app
 ```
 
 **⚠️ IMPORTANTE:** Reemplaza `https://tu-backend.up.railway.app` con la URL real de tu backend que copiaste en el paso 2.2.D
@@ -168,9 +187,9 @@ Necesitas permitir que el frontend se comunique con el backend:
 ```python
 # Habilitar CORS para permitir peticiones desde React
 CORS(app, origins=[
-    "http://localhost:5173",  # Desarrollo local
-    "https://tu-frontend.up.railway.app",  # Producción Railway
-    "https://*.railway.app"  # Cualquier subdominio de Railway
+   "http://localhost:5173",  # Desarrollo local
+   "https://tu-frontend.up.railway.app",  # Producción Railway
+   "https://*.railway.app"  # Cualquier subdominio de Railway
 ])
 ```
 

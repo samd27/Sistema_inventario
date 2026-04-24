@@ -9,6 +9,7 @@ cryptography==41.0.7
 
 # Utilidades
 python-dotenv==1.0.0
+requests==2.32.3
 
 # Servidor de producción
 gunicorn==21.2.0

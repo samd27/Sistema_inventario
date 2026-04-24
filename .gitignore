@@ -64,3 +64,4 @@ temp/
 # Node
 frontend/node_modules/
 frontend/dist/
+RAILWAY_CHECKLIST.md

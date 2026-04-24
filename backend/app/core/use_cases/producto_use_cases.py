@@ -10,11 +10,24 @@ from app.core.interfaces.producto_repository import IProductoRepository
 class ProductoUseCases:
     """Casos de uso relacionados con productos"""
     
-    def __init__(self, producto_repository: IProductoRepository):
+    def __init__(self, producto_repository: IProductoRepository, alertas_client=None):
         """
         Inyección de dependencias - depende de la interfaz, no de la implementación
         """
         self.producto_repository = producto_repository
+        self.alertas_client = alertas_client
+
+    def _emitir_alerta_si_bajo_stock(self, producto: Producto) -> None:
+        """Notifica al microservicio de alertas sin interrumpir la operación principal."""
+        if not self.alertas_client:
+            return
+        if not producto.necesita_reabastecimiento():
+            return
+        try:
+            self.alertas_client.notify_low_stock(producto)
+        except Exception:
+            # El backend principal no debe fallar por errores en un microservicio externo.
+            pass
     
     def crear_producto(self, producto: Producto) -> tuple[bool, Optional[str], Optional[Producto]]:
         """Crea un nuevo producto validando las reglas de negocio"""
@@ -25,6 +38,7 @@ class ProductoUseCases:
         
         # Persistir el producto
         producto_creado = self.producto_repository.crear(producto)
+        self._emitir_alerta_si_bajo_stock(producto_creado)
         return True, None, producto_creado
     
     def obtener_producto(self, id: int) -> Optional[Producto]:
@@ -51,6 +65,7 @@ class ProductoUseCases:
         exito = self.producto_repository.actualizar(producto)
         if not exito:
             return False, "Error al actualizar el producto"
+        self._emitir_alerta_si_bajo_stock(producto)
         
         return True, None
     
@@ -94,5 +109,6 @@ class ProductoUseCases:
         exito = self.producto_repository.actualizar(producto)
         if not exito:
             return False, "Error al actualizar el stock"
+        self._emitir_alerta_si_bajo_stock(producto)
         
         return True, None

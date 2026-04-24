@@ -27,6 +27,7 @@ from app.data.repositories.producto_repository import ProductoRepository
 from app.core.use_cases.categoria_use_cases import CategoriaUseCases
 from app.core.use_cases.proveedor_use_cases import ProveedorUseCases
 from app.core.use_cases.producto_use_cases import ProductoUseCases
+from app.web.services.alertas_client import AlertasServiceClient
 
 # Importar APIs REST
 from app.web.api.categoria_api import create_categoria_api
@@ -70,11 +71,17 @@ def create_app(config_name=None):
         categoria_repo = CategoriaRepository()
         proveedor_repo = ProveedorRepository()
         producto_repo = ProductoRepository()
+
+        # Clientes de microservicios
+        alertas_client = AlertasServiceClient(
+            app.config.get('ALERTAS_SERVICE_URL', ''),
+            app.config.get('MICROSERVICES_TIMEOUT_SECONDS', 5)
+        )
         
         # Capa de Negocio: Casos de uso
         categoria_uc = CategoriaUseCases(categoria_repo)
         proveedor_uc = ProveedorUseCases(proveedor_repo)
-        producto_uc = ProductoUseCases(producto_repo)
+        producto_uc = ProductoUseCases(producto_repo, alertas_client=alertas_client)
         
         # Capa de API REST (para React)
         categoria_api = create_categoria_api(categoria_uc)
@@ -92,7 +99,7 @@ def create_app(config_name=None):
         return jsonify({
             'message': 'Tienda Inventario API',
             'version': '1.0.0',
-            'frontend': 'http://localhost:5173'
+            'frontend': os.environ.get('FRONTEND_URL', 'http://localhost:5173')
         })
     
     return app

@@ -8,6 +8,9 @@ import ssl
 class Config:
     """Configuración base"""
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-secret-key-change-in-production'
+    ALERTAS_SERVICE_URL = os.environ.get('ALERTAS_SERVICE_URL') or 'http://127.0.0.1:8081'
+    REPORTES_SERVICE_URL = os.environ.get('REPORTES_SERVICE_URL') or 'http://127.0.0.1:8082'
+    MICROSERVICES_TIMEOUT_SECONDS = int(os.environ.get('MICROSERVICES_TIMEOUT_SECONDS') or 5)
     
     # Configuración de TiDB Cloud
     # Format: mysql+pymysql://username:password@host:port/database?ssl_ca=/path/to/ca.pem
